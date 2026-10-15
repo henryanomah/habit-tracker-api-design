@@ -1,3 +1,4 @@
+// @ts-expect-error custom-env does not provide TypeScript declarations.
 import { env as loadEnv } from 'custom-env'
 import { z } from 'zod'
 
@@ -35,7 +36,7 @@ try {
 } catch (e) {
   if (e instanceof z.ZodError) {
     console.log('Invalid env var')
-    console.error(JSON.stringify(e.flatten().fieldErrors, null, 2))
+    console.error(JSON.stringify(z.flattenError(e).fieldErrors, null, 2))
 
     e.issues.forEach((err) => {
       const path = err.path.join('.')
