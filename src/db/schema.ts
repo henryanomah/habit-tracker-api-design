@@ -19,7 +19,7 @@ export const users = pgTable('users', {
   firstName: varchar('first_name', { length: 50 }),
   lastName: varchar('last_name', { length: 50 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const habits = pgTable('habits', {
@@ -33,7 +33,7 @@ export const habits = pgTable('habits', {
   targetCount: integer('target_count').default(1),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const entries = pgTable('entries', {
@@ -51,7 +51,7 @@ export const tags = pgTable('tags', {
   name: varchar('name', { length: 50 }).notNull().unique(),
   color: varchar('color', { length: 7 }).default('#6b7280'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const habitTags = pgTable('habitTags', {
