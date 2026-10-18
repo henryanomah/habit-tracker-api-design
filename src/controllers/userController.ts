@@ -1,14 +1,16 @@
 import type { Response } from 'express'
-import type { AuthenticatedRequest } from '../middleware/auth.ts'
 import { db } from '../db/connection.ts'
 import { users } from '../db/schema.ts'
 import { eq } from 'drizzle-orm'
-import bcrypt from 'bcrypt'
+import type { AuthenticatedRequest } from '../middleware/auth.ts'
+import { comparePasswords, hashPassword } from '../utils/passwords.ts'
 
-export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
+export const getUserProfile = async (
+  req: AuthenticatedRequest,
+  res: Response,
+) => {
   try {
     const userId = req.user!.id
-
     const [user] = await db
       .select({
         id: users.id,
@@ -25,22 +27,20 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
-
-    res.json({ user })
-  } catch (error) {
-    console.error('Get profile error:', error)
-    res.status(500).json({ error: 'Failed to fetch profile' })
+    return res.json({ user })
+  } catch (e) {
+    console.error('Get user profile error', e)
+    return res.status(500).json({ error: 'Failed to get user profile' })
   }
 }
 
-export const updateProfile = async (
+export const updateUserProfile = async (
   req: AuthenticatedRequest,
   res: Response,
 ) => {
   try {
     const userId = req.user!.id
     const { email, username, firstName, lastName } = req.body
-
     const [updatedUser] = await db
       .update(users)
       .set({
@@ -59,14 +59,13 @@ export const updateProfile = async (
         lastName: users.lastName,
         updatedAt: users.updatedAt,
       })
-
     res.json({
-      message: 'Profile updated successfully',
+      message: 'User updated successfully',
       user: updatedUser,
     })
-  } catch (error) {
-    console.error('Update profile error:', error)
-    res.status(500).json({ error: 'Failed to update profile' })
+  } catch (e) {
+    console.error('Update user profile error', e)
+    return res.status(500).json({ error: 'Failed to update user profile' })
   }
 }
 
@@ -79,19 +78,18 @@ export const changePassword = async (
     const { currentPassword, newPassword } = req.body
 
     const [user] = await db.select().from(users).where(eq(users.id, userId))
-
     if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+      return res.status(404).json({ error: 'Users does not exist' })
     }
 
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password)
-
+    const isValidPassword = await comparePasswords(
+      currentPassword,
+      user.password,
+    )
     if (!isValidPassword) {
-      return res.status(400).json({ error: 'Current password is incorrect' })
+      return res.status(400).json({ error: 'Current password does not match' })
     }
-
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12')
-    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds)
+    const hashedNewPassword = await hashPassword(newPassword)
 
     await db
       .update(users)
@@ -101,11 +99,11 @@ export const changePassword = async (
       })
       .where(eq(users.id, userId))
 
-    res.json({
+    return res.json({
       message: 'Password changed successfully',
     })
-  } catch (error) {
-    console.error('Change password error:', error)
-    res.status(500).json({ error: 'Failed to change password' })
+  } catch (e) {
+    console.error('Change password error', e)
+    return res.status(500).json({ error: 'Failed to change password' })
   }
 }
