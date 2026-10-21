@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
-  getProfile,
-  updateProfile,
+  getUserProfile,
+  updateUserProfile,
   changePassword,
 } from '../controllers/userController.ts'
 import { authenticateToken } from '../middleware/auth.ts'
@@ -13,7 +13,7 @@ const router = Router()
 router.use(authenticateToken)
 
 const updateProfileSchema = z.object({
-  email: z.string().email('Invalid email format').optional(),
+  email: z.email('Invalid email format').optional(),
   username: z
     .string()
     .min(3, 'Username must be at least 3 characters')
@@ -28,8 +28,8 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),
 })
 
-router.get('/profile', getProfile)
-router.put('/profile', validateBody(updateProfileSchema), updateProfile)
+router.get('/profile', getUserProfile)
+router.put('/profile', validateBody(updateProfileSchema), updateUserProfile)
 router.put('/password', validateBody(changePasswordSchema), changePassword)
 
 export default router
